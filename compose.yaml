@@ -1,0 +1,33 @@
+services:
+  bge-m3:
+    image: vllm/vllm-openai:v0.32.0
+    container_name: bge-m3-vllm
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    ipc: host
+    gpus: all
+    command:
+      - --model
+      - BAAI/bge-m3
+      - --runner
+      - pooling
+      - --hf-overrides
+      - '{"architectures":["BgeM3EmbeddingModel"]}'
+      - --pooler-config.task
+      - embed
+      - --max-model-len
+      - "8192"
+      - --gpu-memory-utilization
+      - "0.75"
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 300s
+
+volumes:
+  hf-cache:
